@@ -123,9 +123,13 @@ def load(app):
                     return False, f"发往{addr}的邮件通过SMTPViaHTTP发送失败。"
             else:
                 code = response.status_code
+                log_simple("email", "[{date}] [CTFd] 发往{addr}的邮件通过SMTPViaHTTP发送失败！状态码{code}", addr=addr,
+                           code=code)
                 return False, f"发往{addr}的邮件通过SMTPViaHTTP发送失败。状态码{code}"
         except Exception as e:
             err = str(e)
+            log_simple("email", "[{date}] [CTFd] 发往{addr}的邮件通过SMTPViaHTTP发送失败！错误{err}", addr=addr,
+                       err=err)
             return False, f"发往{addr}的邮件通过SMTPViaHTTP发送失败。错误{err}"
 
 
