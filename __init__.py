@@ -109,16 +109,25 @@ def load(app):
         headers = {
             'Content-Type': 'application/json; charset=utf-8'
         }
-        response = requests.post(get_config("SMTPViaHTTP:ServerName"), data=payload_json,
-                                 headers=headers)
-        response_json = response.json()
-        if response_json['success']:
-            log_simple("email", "[{date}] [CTFd] 发往{addr}的邮件已通过SMTPViaHTTP成功发送。", addr=addr)
-            return True, f"发往{addr}的邮件已通过SMTPViaHTTP成功发送。"
-        else:
-            log_simple("email", "[{date}] [CTFd] 发往{addr}的邮件通过SMTPViaHTTP发送失败！\n{exception}", addr=addr,
-                       exception=response_json['exception'])
-            return False, f"发往{addr}的邮件通过SMTPViaHTTP发送失败。"
+        try:
+            response = requests.post(get_config("SMTPViaHTTP:ServerName"), data=payload_json,
+                                     headers=headers)
+            if response.status_code == 200:
+                response_json = response.json()
+                if response_json['success']:
+                    log_simple("email", "[{date}] [CTFd] 发往{addr}的邮件已通过SMTPViaHTTP成功发送。", addr=addr)
+                    return True, f"发往{addr}的邮件已通过SMTPViaHTTP成功发送。"
+                else:
+                    log_simple("email", "[{date}] [CTFd] 发往{addr}的邮件通过SMTPViaHTTP发送失败！\n{exception}", addr=addr,
+                               exception=response_json['exception'])
+                    return False, f"发往{addr}的邮件通过SMTPViaHTTP发送失败。"
+            else:
+                code = response.status_code
+                return False, f"发往{addr}的邮件通过SMTPViaHTTP发送失败。状态码{code}"
+        except Exception as e:
+            err = str(e)
+            return False, f"发往{addr}的邮件通过SMTPViaHTTP发送失败。错误{err}"
+
 
     def set_smtp_decorator(func):
         @wraps(func)
